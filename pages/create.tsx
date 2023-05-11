@@ -1,13 +1,15 @@
 import Layout from '@/components/Layout';
 import ListingForm from '@/components/ListingForm';
 import axios from 'axios';
+import {Home} from '@prisma/client';
 
 
 const Create = () => {
-    const addHome = data => axios.post('/api/homes', data);
+    const addHome = (data: Home) => axios.post('/api/homes', data);
 
   return (
-    <Layout>
+    // <Layout>
+    <div>
       <div className="max-w-screen-sm mx-auto">
         <h1 className="text-xl font-medium text-gray-800">List your home</h1>
         <p className="text-gray-500">
@@ -21,7 +23,8 @@ const Create = () => {
           />
         </div>
       </div>
-    </Layout>
+      </div>
+    // {/* </Layout> */}
   );
 };
 

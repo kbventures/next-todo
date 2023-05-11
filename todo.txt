@@ -1,5 +1,11 @@
-import { useState } from 'react';
+Need to figure out why the layout is breaking the inner closeModal
+Need to figure out why image upload no working anymore
+Need to figure out why supabase entry not working anymore
+
+
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import PropTypes from 'prop-types';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
 import { Formik, Form } from 'formik';
@@ -8,8 +14,7 @@ import ImageUpload from '@/components/ImageUpload';
 import axios, { AxiosResponse } from 'axios';
 import { Home } from '@prisma/client';
 
-
-const ListingSchema = Yup.object().shape({
+const FormSchema = Yup.object().shape({
   title: Yup.string().trim().required(),
   description: Yup.string().trim().required(),
   price: Yup.number().positive().integer().min(1).required(),
@@ -18,22 +23,21 @@ const ListingSchema = Yup.object().shape({
   baths: Yup.number().positive().integer().min(1).required(),
 });
 
-// type ListFormFormType = Omit<Home, "image">
 
-type ListFormType = {
-  title: string,
-  description: string,
-  price: number,
-  guests:number, 
-  beds: number,
-  baths: number,
+type initialValuesType = {
+  title:string,
+  description:string,
+  price:number,
+  guest:number,
+  beds:number,
+  baths:number,
 }
 
 
-type ListingFormProps = {
+type FormProps = {
   redirectPath: string,
   buttonText: string,
-  onSubmit: (data: any) => Promise<AxiosResponse<any, any>>
+  onSubmit: (data:any) => Promise<AxiosResponse<any, any>>
 }
 
 
@@ -41,23 +45,36 @@ const ListingForm = ({
   redirectPath = '',
   buttonText = 'Submit',
   onSubmit,
-}: ListingFormProps) => {
+}: FormProps) => {
   const router = useRouter();
 
 
+
+   // Disables(true) or enables Formik Input Interaction
+  const [disabled, setDisabled] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
 
-const [initialFormValues, setInitialFormValues] = useState<ListFormType>({
-  title: '',
-  description: '',
-  price: 0,
-  guests: 1,
-  beds: 1,
-  baths: 1,
-});
+  const [initialFormValues, setInitialFormValues] = useState({
+    image: '',
+    title: '',
+    description: '',
+    price: 0,
+    guests: 1,
+    beds: 1,
+    baths: 1,
+  });
 
-const [disabled, setDisabled] = useState(false);
 
+
+  // useEffect(() => {
+  //   if (initialValues) {
+  //     const { image, ...values } = initialValues;
+  //     setInitialFormValues(values);
+  //   }
+  // }, [initialValues]);
+
+
+  
 
   const upload: (image: string | ArrayBuffer | null) => Promise<void> = async (image) => {
     if (!image) return;
@@ -66,10 +83,7 @@ const [disabled, setDisabled] = useState(false);
       setDisabled(true);
       toastId = toast.loading('Uploading...');
       const { data } = await axios.post('/api/image-upload', { image });
-      // Why is image not updated
-      console.log("data",data)
-      console.log("data.url",data.url)
-      setImageUrl(data.url);
+      setImageUrl(data?.url);
       toast.success('Successfully uploaded', { id: toastId });
     } catch (e) {
       toast.error('Unable to upload', { id: toastId });
@@ -79,7 +93,7 @@ const [disabled, setDisabled] = useState(false);
     }
   };
 
-  const handleOnSubmit = async (values: any) => {
+  const handleOnSubmit = async (values:any) => {
     let toastId;
     try {
       setDisabled(true);
@@ -93,7 +107,6 @@ const [disabled, setDisabled] = useState(false);
         router.push(redirectPath);
       }
     } catch (e) {
-      console.log(e)
       toast.error('Unable to submit', { id: toastId });
       setDisabled(false);
     }
@@ -101,17 +114,17 @@ const [disabled, setDisabled] = useState(false);
 
   return (
     <div>
+      <h1>Haha</h1>
       <div className="mb-8 max-w-md">
         <ImageUpload
-          key={imageUrl}
-          initialImage={{ src: imageUrl, alt: "" }}
+          initialImage={{ src: initialFormValues.image, alt: initialFormValues.title }}
           onChangePicture={upload}
         />
       </div>
 
       <Formik
         initialValues={initialFormValues}
-        validationSchema={ListingSchema}
+        validationSchema={FormSchema}
         validateOnBlur={false}
         onSubmit={handleOnSubmit}
       >
@@ -188,5 +201,19 @@ const [disabled, setDisabled] = useState(false);
   );
 };
 
+ListingForm.propTypes = {
+  initialValues: PropTypes.shape({
+    image: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    price: PropTypes.number,
+    guests: PropTypes.number,
+    beds: PropTypes.number,
+    baths: PropTypes.number,
+  }),
+  redirectPath: PropTypes.string,
+  buttonText: PropTypes.string,
+  onSubmit: PropTypes.func,
+};
 
 export default ListingForm;

@@ -9,6 +9,11 @@ const nextConfig = {
     config.resolve.alias['@'] = path.resolve(__dirname);
     return config;
   },
+  images: {
+    domains: ["jsmjhjmrxnowfxdbhmxo.supabase.co"],
+  }
 }
 
 module.exports = nextConfig
+
+
