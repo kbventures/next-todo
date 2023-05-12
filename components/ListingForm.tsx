@@ -6,7 +6,8 @@ import { toast } from 'react-hot-toast';
 import { Formik, Form } from 'formik';
 import Input from '@/components/Input';
 import ImageUpload from '@/components/ImageUpload';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
+import { Home } from '@prisma/client';
 
 const ListingSchema = Yup.object().shape({
   title: Yup.string().trim().required(),
@@ -17,18 +18,40 @@ const ListingSchema = Yup.object().shape({
   baths: Yup.number().positive().integer().min(1).required(),
 });
 
+
+type ListingFormProps = {
+  initialValues: Home,
+  redirectPath: string,
+  buttonText: string,
+  onSubmit: (data: Home) => Promise<AxiosResponse<any, any>>
+}
+
+
 const ListingForm = ({
-  initialValues = null,
+  initialValues,
   redirectPath = '',
   buttonText = 'Submit',
-  onSubmit = () => null,
-}) => {
+  onSubmit,
+}: ListingFormProps) => {
   const router = useRouter();
+
+
+
+
+  const { image, ...initialFormValues } = initialValues ?? {
+    image: '',
+    title: '',
+    description: '',
+    price: 0,
+    guests: 1,
+    beds: 1,
+    baths: 1,
+  };
 
   const [disabled, setDisabled] = useState(false);
   const [imageUrl, setImageUrl] = useState(initialValues?.image ?? '');
 
-  const upload = async image => {
+  const upload: (image: string | ArrayBuffer | null) => Promise<void> = async (image) => {
     if (!image) return;
     let toastId;
     try {
@@ -62,16 +85,6 @@ const ListingForm = ({
       toast.error('Unable to submit', { id: toastId });
       setDisabled(false);
     }
-  };
-
-  const { image, ...initialFormValues } = initialValues ?? {
-    image: '',
-    title: '',
-    description: '',
-    price: 0,
-    guests: 1,
-    beds: 1,
-    baths: 1,
   };
 
   return (

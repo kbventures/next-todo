@@ -1,34 +1,52 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, SyntheticEvent, ChangeEventHandler } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import classNames from 'classnames';
 import { ArrowUpIcon } from '@heroicons/react/outline';
+import { CSSProperties } from 'react';
+
+
+
+type ImageUploadProps = {
+  label?: string,
+  initialImage?: {
+    src: string | ArrayBuffer | null,
+    alt: string,
+  },
+  objectFit?: CSSProperties['objectFit'],
+  accept?: string,
+  sizeLimit?: number,
+  onChangePicture: (image: string | ArrayBuffer | null) => Promise<void>,
+}
+
 
 const ImageUpload = ({
   label = 'Image',
-  initialImage = null,
+  initialImage,
   objectFit = 'cover',
   accept = '.png, .jpg, .jpeg, .gif',
   sizeLimit = 10 * 1024 * 1024, // 10MB
-  onChangePicture = () => null,
-}) => {
-  const pictureRef = useRef();
+  onChangePicture,
+}: ImageUploadProps) => {
+  const pictureRef = useRef<HTMLInputElement>(null);
 
   const [image, setImage] = useState(initialImage);
   const [updatingPicture, setUpdatingPicture] = useState(false);
-  const [pictureError, setPictureError] = useState(null);
+  const [pictureError, setPictureError] = useState<string>();
 
-  const handleOnChangePicture = e => {
-    const file = e.target.files[0];
+  const handleOnChangePicture: ChangeEventHandler<HTMLInputElement> = e => {
+    const fileList = e.target.files;
+    if (!fileList) return;
     const reader = new FileReader();
-
+    const file = fileList[0]
     const fileName = file?.name?.split('.')?.[0] ?? 'New file';
 
     reader.addEventListener(
       'load',
       async function () {
         try {
+
           setImage({ src: reader.result, alt: fileName });
           if (typeof onChangePicture === 'function') {
             await onChangePicture(reader.result);
@@ -75,7 +93,7 @@ const ImageUpload = ({
       >
         {image?.src ? (
           <Image
-            src={image.src}
+            src={image.src as string}
             alt={image?.alt ?? ''}
             layout="fill"
             objectFit={objectFit}
