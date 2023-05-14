@@ -1,5 +1,4 @@
-import { useState, useRef, SyntheticEvent, ChangeEventHandler } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useRef, ChangeEventHandler } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import classNames from 'classnames';
@@ -38,8 +37,8 @@ const ImageUpload = ({
   const handleOnChangePicture: ChangeEventHandler<HTMLInputElement> = e => {
     const fileList = e.target.files;
     if (!fileList) return;
-    const reader = new FileReader();
     const file = fileList[0]
+    const reader = new FileReader();
     const fileName = file?.name?.split('.')?.[0] ?? 'New file';
 
     reader.addEventListener(
@@ -82,6 +81,7 @@ const ImageUpload = ({
       <label className="text-gray-600">{label}</label>
 
       <button
+        style={{ height: '252px', width: '448px'}}
         disabled={updatingPicture}
         onClick={handleOnClickPicture}
         className={classNames(
@@ -128,16 +128,5 @@ const ImageUpload = ({
   );
 };
 
-ImageUpload.propTypes = {
-  label: PropTypes.string,
-  initialImage: PropTypes.shape({
-    src: PropTypes.string,
-    alt: PropTypes.string,
-  }),
-  objectFit: PropTypes.string,
-  accept: PropTypes.string,
-  sizeLimit: PropTypes.number,
-  onChangePicture: PropTypes.func,
-};
 
 export default ImageUpload;
